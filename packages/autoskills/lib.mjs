@@ -19,16 +19,22 @@ function createFsMemo() {
     readFile: (p, e = "utf-8") => {
       const key = resolve(p);
       if (!fileCache.has(key)) {
-        try { fileCache.set(key, readFileSync(key, e)); }
-        catch { fileCache.set(key, null); }
+        try {
+          fileCache.set(key, readFileSync(key, e));
+        } catch {
+          fileCache.set(key, null);
+        }
       }
       return fileCache.get(key);
     },
     readDir: (p, o = {}) => {
       const key = `${resolve(p)}#${JSON.stringify(o)}`;
       if (!dirCache.has(key)) {
-        try { dirCache.set(key, readdirSync(resolve(p), o)); }
-        catch { dirCache.set(key, []); }
+        try {
+          dirCache.set(key, readdirSync(resolve(p), o));
+        } catch {
+          dirCache.set(key, []);
+        }
       }
       return dirCache.get(key);
     },
@@ -36,11 +42,24 @@ function createFsMemo() {
 }
 
 /** Returns memoized fs or raw fs fallback with same interface. */
-const fsOps = (memo) => memo || {
-  exists: existsSync,
-  readFile: (p, e) => { try { return readFileSync(p, e); } catch { return null; } },
-  readDir: (p, o) => { try { return readdirSync(p, o); } catch { return []; } },
-};
+const fsOps = (memo) =>
+  memo || {
+    exists: existsSync,
+    readFile: (p, e) => {
+      try {
+        return readFileSync(p, e);
+      } catch {
+        return null;
+      }
+    },
+    readDir: (p, o) => {
+      try {
+        return readdirSync(p, o);
+      } catch {
+        return [];
+      }
+    },
+  };
 
 export {
   SKILLS_MAP,
@@ -161,7 +180,12 @@ function parsePnpmWorkspaceYaml(content) {
     }
     if (inPackages) {
       if (line.startsWith("- ")) {
-        patterns.push(line.slice(2).trim().replace(/^['"]|['"]$/g, ""));
+        patterns.push(
+          line
+            .slice(2)
+            .trim()
+            .replace(/^['"]|['"]$/g, ""),
+        );
       } else if (line !== "" && !line.startsWith("#")) {
         break;
       }
@@ -269,8 +293,11 @@ export function readPackageJson(dir, fsMemo = null) {
   const f = fsOps(fsMemo);
   const content = f.readFile(join(dir, "package.json"), "utf-8");
   if (content === null) return null;
-  try { return JSON.parse(content); }
-  catch { return null; }
+  try {
+    return JSON.parse(content);
+  } catch {
+    return null;
+  }
 }
 
 /**
